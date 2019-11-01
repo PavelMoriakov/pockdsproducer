@@ -9,7 +9,9 @@ import com.amazonaws.services.kinesis.AmazonKinesisClientBuilder;
 import com.amazonaws.services.kinesis.model.*;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.avro.AvroMapper;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -20,18 +22,18 @@ public class Main {
     private static String streamName = "test";
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException, JsonMappingException {
 
         AmazonKinesis kinesisClient = getAmazonKinesisClient("us-east-2");
 
-        sendData(kinesisClient,streamName);
+
+            sendData(kinesisClient, streamName);
 
     }
 
     private static AmazonKinesis getAmazonKinesisClient(String regionName) {
 
         AmazonKinesisClientBuilder clientBuilder = AmazonKinesisClientBuilder.standard();
-
         clientBuilder.setEndpointConfiguration(
                 new AwsClientBuilder.EndpointConfiguration("kinesis.us-east-2.amazonaws.com",
                         regionName));
@@ -41,22 +43,21 @@ public class Main {
         return clientBuilder.build();
     }
 
-    private static void sendData(AmazonKinesis kinesisClient,String streamName) {
+    private static void sendData(AmazonKinesis kinesisClient,String streamName) throws JsonMappingException {
 
-        ObjectMapper mapper = new ObjectMapper();
 
         Person person = new Person("John", "Smith", 20);
 
+        Employee em = new Employee("Vasia",11,new String[]{"ASd","assasssa"});
+
         PutRecordsRequest putRecordsRequest = new PutRecordsRequest();
+
         putRecordsRequest.setStreamName(streamName);
         List<PutRecordsRequestEntry> putRecordsRequestEntryList = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 50; i++) {
             PutRecordsRequestEntry putRecordsRequestEntry = new PutRecordsRequestEntry();
-           try {
-                putRecordsRequestEntry.setData(ByteBuffer.wrap(mapper.writeValueAsBytes(person)));
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
+            putRecordsRequestEntry.setData(ByteBuffer.wrap(AvroUtils.writeDatatoBytes(em)));
+
             //putRecordsRequestEntry.setData(ByteBuffer.wrap(String.valueOf(i).getBytes()));
             putRecordsRequestEntry.setPartitionKey(String.format("partitionKey-%d", i));
             putRecordsRequestEntryList.add(putRecordsRequestEntry);
