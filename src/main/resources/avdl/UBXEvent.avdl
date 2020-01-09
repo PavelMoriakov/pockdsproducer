@@ -1,0 +1,8 @@
+@version("0.1.0")
+@namespace("com.naya.avro")
+protocol UBXEventProtocol{
+
+  record EventAttributes{
+                union{null, string} name=null;
+  }
+}

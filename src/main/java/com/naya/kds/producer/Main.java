@@ -4,30 +4,32 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.kinesis.AmazonKinesis;
-import com.amazonaws.services.kinesis.AmazonKinesisClient;
 import com.amazonaws.services.kinesis.AmazonKinesisClientBuilder;
-import com.amazonaws.services.kinesis.model.*;
-import com.amazonaws.services.kinesis.producer.KinesisProducer;
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.amazonaws.services.kinesis.model.PutRecordsRequest;
+import com.amazonaws.services.kinesis.model.PutRecordsRequestEntry;
+import com.amazonaws.services.kinesis.model.PutRecordsResult;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.avro.AvroMapper;
+import com.naya.avro.EventAttributes;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
 
-    private static String streamName = "test";
+    private static String streamName = "dev-pzn-events";
 
 
     public static void main(String[] args) throws InterruptedException, JsonMappingException {
 
-        AmazonKinesis kinesisClient = getAmazonKinesisClient("us-east-2");
+        AmazonKinesis kinesisClient = getAmazonKinesisClient("us-east-1");
 
-
+        try {
             sendData(kinesisClient, streamName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -35,7 +37,7 @@ public class Main {
 
         AmazonKinesisClientBuilder clientBuilder = AmazonKinesisClientBuilder.standard();
         clientBuilder.setEndpointConfiguration(
-                new AwsClientBuilder.EndpointConfiguration("kinesis.us-east-2.amazonaws.com",
+                new AwsClientBuilder.EndpointConfiguration("kinesis.us-east-1.amazonaws.com",
                         regionName));
         clientBuilder.withCredentials(DefaultAWSCredentialsProviderChain.getInstance());
         clientBuilder.setClientConfiguration(new ClientConfiguration());
@@ -43,12 +45,7 @@ public class Main {
         return clientBuilder.build();
     }
 
-    private static void sendData(AmazonKinesis kinesisClient,String streamName) throws JsonMappingException {
-
-
-        Person person = new Person("John", "Smith", 20);
-
-        Employee em = new Employee("Vasia",11,new String[]{"ASd","assasssa"});
+    private static void sendData(AmazonKinesis kinesisClient, String streamName) throws IOException {
 
         PutRecordsRequest putRecordsRequest = new PutRecordsRequest();
 
@@ -56,8 +53,11 @@ public class Main {
         List<PutRecordsRequestEntry> putRecordsRequestEntryList = new ArrayList<>();
         for (int i = 0; i < 50; i++) {
             PutRecordsRequestEntry putRecordsRequestEntry = new PutRecordsRequestEntry();
-            putRecordsRequestEntry.setData(ByteBuffer.wrap(AvroUtils.writeDatatoBytes(em)));
+            EventAttributes eventAttributes = EventAttributes.newBuilder().setName("Jon.Doe").build();
 
+            putRecordsRequestEntry.setData(eventAttributes.toByteBuffer());
+
+            System.out.println(eventAttributes);
             //putRecordsRequestEntry.setData(ByteBuffer.wrap(String.valueOf(i).getBytes()));
             putRecordsRequestEntry.setPartitionKey(String.format("partitionKey-%d", i));
             putRecordsRequestEntryList.add(putRecordsRequestEntry);
