@@ -16,9 +16,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Main {
+public class KinesisProducer {
 
-    private static String streamName = "dev-pzn-events";
+    private static String streamName = "dev-events";
 
 
     public static void main(String[] args) throws InterruptedException, JsonMappingException {
@@ -30,7 +30,6 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private static AmazonKinesis getAmazonKinesisClient(String regionName) {
@@ -54,11 +53,7 @@ public class Main {
         for (int i = 0; i < 50; i++) {
             PutRecordsRequestEntry putRecordsRequestEntry = new PutRecordsRequestEntry();
             EventAttributes eventAttributes = EventAttributes.newBuilder().setName("Jon.Doe").build();
-
             putRecordsRequestEntry.setData(eventAttributes.toByteBuffer());
-
-            System.out.println(eventAttributes);
-            //putRecordsRequestEntry.setData(ByteBuffer.wrap(String.valueOf(i).getBytes()));
             putRecordsRequestEntry.setPartitionKey(String.format("partitionKey-%d", i));
             putRecordsRequestEntryList.add(putRecordsRequestEntry);
         }
