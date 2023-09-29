@@ -10,7 +10,7 @@
 
     <properties>
         <aws-java-sdk.version>1.11.603</aws-java-sdk.version>
-        <avro.version>1.9.1</avro.version>
+        <avro.version>1.11.3</avro.version>
 
     </properties>
     <dependencies>
